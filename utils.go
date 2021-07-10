@@ -9,6 +9,28 @@ import (
 	"github.com/pkg/errors"
 )
 
+func StructToData(stc interface{}) (ret Data, err error) {
+
+	ret = make(map[string]interface{})
+
+	refV := reflect.ValueOf(stc)
+	if refV.Type().Kind() != reflect.Struct {
+		err = errors.New("param must be struct")
+		return
+	}
+
+	for i := 0; i < refV.NumField(); i++ {
+		tagName := refV.Type().Field(i).Tag.Get("db")
+		if tagName == "" {
+			tagName = strings.ToLower(refV.Type().Field(i).Name)
+		}
+
+		ret[tagName] = refV.Field(i).Interface()
+	}
+
+	return
+}
+
 func parseSqlColumns(sql string) ([]string, error) {
 	cols := []string{}
 
